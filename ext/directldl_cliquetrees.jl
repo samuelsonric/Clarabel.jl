@@ -11,8 +11,9 @@ struct CliqueTreesDirectLDLSolver{T} <: AbstractDirectLDLSolver{T}
     reg::DynamicRegularization{T, Int, Vector{Int}}
 
     function CliqueTreesDirectLDLSolver{T}(KKT::SparseMatrixCSC{T}, Dsigns, settings) where {T}
-        F = ChordalLDLt{:L}(Symmetric(KKT, :L))
-        P = flatindices(F, KKT)
+        A = Symmetric(KKT, :L)
+        F = ChordalLDLt{:L}(A)
+        P = flatindices(F, A)
 
         reg = DynamicRegularization(
             Dsigns;
