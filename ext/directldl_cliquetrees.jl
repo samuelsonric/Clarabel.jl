@@ -8,20 +8,20 @@ import Clarabel: linear_solver_info, update_values!, scale_values!, refactor!, s
 struct CliqueTreesDirectLDLSolver{T} <: AbstractDirectLDLSolver{T}
     F::ChordalLDLt{:L, T, Int, FVector{T}, FVector{Int}}
     P::Vector{Int}
-    reg::DynamicRegularization{T, Int, Vector{Int}}
+    reg::DynamicRegularization{T}
+    signs::Vector{Int}
 
-    function CliqueTreesDirectLDLSolver{T}(KKT::SparseMatrixCSC{T}, Dsigns, settings) where {T}
+    function CliqueTreesDirectLDLSolver{T}(KKT::SparseMatrixCSC{T}, signs, settings) where {T}
         A = Symmetric(KKT, :L)
         F = ChordalLDLt{:L}(A)
         P = flatindices(F, A)
 
-        reg = DynamicRegularization(
-            Dsigns;
+        reg = DynamicRegularization(;
             delta=convert(T, settings.dynamic_regularization_delta),
             epsilon=convert(T, settings.dynamic_regularization_eps),
         )
 
-        return new{T}(F, P, reg)
+        return new{T}(F, P, reg, signs)
     end
 end
 
@@ -57,6 +57,8 @@ end
 function refactor!(solver::CliqueTreesDirectLDLSolver{T}, K::SparseMatrixCSC{T}) where {T}
     F = solver.F
     P = solver.P
+    reg = solver.reg
+    signs = solver.signs
     nzval = K.nzval
 
     fill!(F, zero(T))
@@ -65,7 +67,7 @@ function refactor!(solver::CliqueTreesDirectLDLSolver{T}, K::SparseMatrixCSC{T})
         setflatindex!(F, nzval[i], P[i])
     end
 
-    ldlt!(F; check=false, reg=solver.reg)
+    ldlt!(F; check=false, reg, signs)
     return issuccess(F)
 end
 
