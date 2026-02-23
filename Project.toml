@@ -31,7 +31,7 @@ PardisoExt = "Pardiso"
 
 [compat]
 AMD = "0.4, 0.5"
-CliqueTrees = "1.14"
+CliqueTrees = "1.15"
 DataStructures = "0.18"
 GenericLinearAlgebra = "0.3"
 HSL = "0.4, 0.5"
